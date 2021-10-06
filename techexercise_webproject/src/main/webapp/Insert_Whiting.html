@@ -1,0 +1,60 @@
+<html>
+<head>
+<style>
+header {
+    background-color:black;
+    color:white;
+    text-align:center;
+    padding:5px;	 
+}
+nav {
+    line-height:30px;
+    background-color:#eeeeee;
+    height:300px;
+    width:100px;
+    float:left;
+    padding:5px;	      
+}
+section {
+    width:350px;
+    float:left;
+    padding:10px;	 	 
+}
+footer {
+    background-color:black;
+    color:white;
+    clear:both;
+    text-align:center;
+    padding:5px;	 	 
+}
+</style>
+</head>
+
+<body>
+<header>
+<h1> Insert Assignment </h1>
+</header>
+
+<nav>
+<a href="/webproject/Search_Whiting.html">Search Assignments</a> <br>
+</nav>
+
+<section>
+	<h1>User Input</h1>
+	
+	<form action="SimpleFormInsert" method="POST">
+	
+		Assignment Name: <input type="text" name="assignment"> <br />
+		Class: <input type="text" name="className"> <br />
+		Due Date (mm/dd/yyyy): <input type="text" name="dueDate"> <br />
+		
+		<input type="submit" value="Submit" />
+	</form>
+
+</section>
+
+<footer>
+Copyright
+</footer>
+</body>
+</html>
