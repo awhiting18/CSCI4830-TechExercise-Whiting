@@ -22,20 +22,20 @@ public class InsertWhiting extends HttpServlet {
    }
 
    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-      String userName = request.getParameter("userName");
-      String email = request.getParameter("email");
-      String phone = request.getParameter("phone");
+      String assignment = request.getParameter("assignment");
+      String className = request.getParameter("className");
+      String dueDate = request.getParameter("dueDate");
 
       Connection connection = null;
-      String insertSql = " INSERT INTO myTable (id, MYUSER, EMAIL, PHONE) values (default, ?, ?, ?)";
+      String insertSql = " INSERT INTO MyTableWhitingTE (id, ASSIGNMENT, CLASS, DUEDATE) values (default, ?, ?, ?)";
 
       try {
          DBConnectionWhiting.getDBConnection(getServletContext());
          connection = DBConnectionWhiting.connection;
          PreparedStatement preparedStmt = connection.prepareStatement(insertSql);
-         preparedStmt.setString(1, userName);
-         preparedStmt.setString(2, email);
-         preparedStmt.setString(3, phone);
+         preparedStmt.setString(1, assignment);
+         preparedStmt.setString(2, className);
+         preparedStmt.setString(3, dueDate);
          preparedStmt.execute();
          connection.close();
       } catch (Exception e) {
@@ -54,13 +54,13 @@ public class InsertWhiting extends HttpServlet {
             "<h2 align=\"center\">" + title + "</h2>\n" + //
             "<ul>\n" + //
 
-            "  <li><b>User Name</b>: " + userName + "\n" + //
-            "  <li><b>Email</b>: " + email + "\n" + //
-            "  <li><b>Phone</b>: " + phone + "\n" + //
+            "  <li><b>Assignment</b>: " + assignment + "\n" + //
+            "  <li><b>Class</b>: " + className + "\n" + //
+            "  <li><b>Date Due</b>: " + dueDate + "\n" + //
 
             "</ul>\n");
 
-      out.println("<a href=/webproject/simpleFormSearch.html>Search Data</a> <br>");
+      out.println("<a href=/techexercise_webproject/Search_Whiting.html>Search Assignment</a> <br>");
       out.println("</body></html>");
    }
 

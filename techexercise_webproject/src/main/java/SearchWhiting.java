@@ -4,6 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -20,11 +25,13 @@ public class SearchWhiting extends HttpServlet {
    }
 
    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-      String keyword = request.getParameter("keyword");
-      search(keyword, response);
+	  String assignment = request.getParameter("assignment");
+	  String className = request.getParameter("className");
+	  String dueDate = request.getParameter("dueDate");
+      search(assignment, className, dueDate, response);
    }
 
-   void search(String keyword, HttpServletResponse response) throws IOException {
+   void search(String assignment, String className, String dueDate, HttpServletResponse response) throws IOException {
       response.setContentType("text/html");
       PrintWriter out = response.getWriter();
       String title = "Database Result";
@@ -42,31 +49,106 @@ public class SearchWhiting extends HttpServlet {
          DBConnectionWhiting.getDBConnection(getServletContext());
          connection = DBConnectionWhiting.connection;
 
-         if (keyword.isEmpty()) {
-            String selectSQL = "SELECT * FROM myTable";
-            preparedStatement = connection.prepareStatement(selectSQL);
-         } else {
-            String selectSQL = "SELECT * FROM myTable WHERE MYUSER LIKE ?";
-            String theUserName = keyword + "%";
-            preparedStatement = connection.prepareStatement(selectSQL);
-            preparedStatement.setString(1, theUserName);
+         //assignment is the only one not empty
+         if(!assignment.isEmpty() && className.isEmpty() && dueDate.isEmpty())
+         {
+        	 String selectSQL = "SELECT * FROM MyTableWhitingTE WHERE ASSIGNMENT LIKE ?";
+             String theAssignment = assignment + "%";
+             preparedStatement = connection.prepareStatement(selectSQL);
+             preparedStatement.setString(1, theAssignment);
+         }
+         //class name is the only one not empty
+         else if(assignment.isEmpty() && !className.isEmpty() && dueDate.isEmpty())
+         {
+        	 String selectSQL = "SELECT * FROM MyTableWhitingTE WHERE CLASS LIKE ?";
+             String theClass = className + "%";
+             preparedStatement = connection.prepareStatement(selectSQL);
+             preparedStatement.setString(1, theClass);
+         }
+         //dueDate is the only one not empty
+         else if(assignment.isEmpty() && className.isEmpty() && !dueDate.isEmpty())
+         {
+        	 String selectSQL = "SELECT * FROM MyTableWhitingTE WHERE DUEDATE LIKE ?";
+             String theDueDate = dueDate + "%";
+             preparedStatement = connection.prepareStatement(selectSQL);
+             preparedStatement.setString(1, theDueDate);
+         }
+         //assignment and class name are not empty and due date is
+         else if(!assignment.isEmpty() && !className.isEmpty() && dueDate.isEmpty())
+         {
+        	 String selectSQL = "SELECT * FROM MyTableWhitingTE WHERE ASSIGNMENT LIKE ? AND CLASS LIKE ?";
+        	 String theAssignment = assignment + "%";
+        	 String theClass = className + "%";
+             preparedStatement = connection.prepareStatement(selectSQL);
+             preparedStatement.setString(1, theAssignment);
+             preparedStatement.setString(2, theClass);
+         }
+         //assignment and due date are not empty and class name is
+         else if(!assignment.isEmpty() && className.isEmpty() && !dueDate.isEmpty())
+         {
+        	 String selectSQL = "SELECT * FROM MyTableWhitingTE WHERE ASSIGNMENT LIKE ? AND DUEDATE LIKE ?";
+        	 String theAssignment = assignment + "%";
+        	 String theDueDate = dueDate + "%";
+             preparedStatement = connection.prepareStatement(selectSQL);
+             preparedStatement.setString(1, theAssignment);
+             preparedStatement.setString(2, theDueDate);
+         }
+         //class name and due date are not empty and assignment is
+         else if(assignment.isEmpty() && !className.isEmpty() && !dueDate.isEmpty())
+         {
+        	 String selectSQL = "SELECT * FROM MyTableWhitingTE WHERE CLASS LIKE ? AND DUEDATE LIKE ?";
+        	 String theClass = className + "%";
+        	 String theDueDate = dueDate + "%";
+             preparedStatement = connection.prepareStatement(selectSQL);
+             preparedStatement.setString(1, theClass);
+             preparedStatement.setString(2, theDueDate);
+         }
+         //all of them are empty
+         else if (assignment.isEmpty() && className.isEmpty() && dueDate.isEmpty()){
+        	 String selectSQL = "SELECT * FROM MyTableWhitingTE";
+             preparedStatement = connection.prepareStatement(selectSQL);
+         }
+         //none of them are empty
+         else
+         {
+        	 String selectSQL = "SELECT * FROM MyTableWhitingTE WHERE ASSIGNMENT LIKE ? AND CLASS LIKE ? AND DUEDATE LIKE ?";
+        	 String theAssignment = assignment + "%";
+        	 String theClass = className + "%";
+        	 String theDueDate = dueDate + "%";
+             preparedStatement = connection.prepareStatement(selectSQL);
+             preparedStatement.setString(1, theAssignment);
+             preparedStatement.setString(2, theClass);
+             preparedStatement.setString(3, theDueDate);
          }
          ResultSet rs = preparedStatement.executeQuery();
 
          while (rs.next()) {
             int id = rs.getInt("id");
-            String userName = rs.getString("myuser").trim();
-            String email = rs.getString("email").trim();
-            String phone = rs.getString("phone").trim();
+            String assignmentParsed = rs.getString("assignment").trim();
+            String classParsed = rs.getString("class").trim();
+            String dueDateParsed = rs.getString("duedate").trim();
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.ENGLISH);
+            Date dateToCompare=sdf.parse(dueDateParsed); 
+            Date today = Calendar.getInstance().getTime();
+            long differenceInMill = dateToCompare.getTime() - today.getTime();
+            long daysTillDue = TimeUnit.DAYS.convert(differenceInMill, TimeUnit.MILLISECONDS);
 
-            if (keyword.isEmpty() || userName.contains(keyword)) {
+            if ((assignment.isEmpty() && className.isEmpty() && dueDate.isEmpty()) || assignmentParsed.contains(assignment) || classParsed.contains(className) || dueDateParsed.contains(dueDate)) {
                out.println("ID: " + id + ", ");
-               out.println("User: " + userName + ", ");
-               out.println("Email: " + email + ", ");
-               out.println("Phone: " + phone + "<br>");
+               out.println("Assignment: " + assignmentParsed + ", ");
+               out.println("Class: " + classParsed + ", ");
+               out.println("Due Date: " + dueDateParsed + ", ");
+               if(daysTillDue >= 0)
+               {
+            	   out.println("Days Until Due: " + daysTillDue + "<br>");
+               }
+               else 
+               {
+            	   out.println("Due " + Math.abs(daysTillDue) + " days ago" + "<br>");
+               }
             }
          }
-         out.println("<a href=/webproject/simpleFormSearch.html>Search Data</a> <br>");
+         out.println("<a href=/techexercise_webproject/Search_Whiting.html>Search Assignments</a> <br>");
          out.println("</body></html>");
          rs.close();
          preparedStatement.close();
